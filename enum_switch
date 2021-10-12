@@ -1,0 +1,53 @@
+# Credit to https://github.com/ralsina/enum_switch
+# Use this to switch over an Enum while ensuring all possible casses are handled.
+# If some enum values aren't handled, there will be an error when the EnumSwitch class is instantiated.
+from enum import Enum
+
+class EnumSwitch:
+    def __init__(self):
+        if hasattr(self, "enum"):
+            self.__enum = getattr(self, "enum")
+        else:
+            raise AttributeError(f"Missing Attribute enum")
+        # Check if we have a default handler
+        if hasattr(self, "default"):
+            return
+        # If not, we need handlers for all cases
+        for e in self.__enum:
+            if not hasattr(self, e.name):
+                raise AttributeError(f"Unhandled switch branch: {e.name}")
+
+    @classmethod
+    def switch(cls, value):
+        obj = cls()
+        if not isinstance(value, obj.__enum):
+            raise ValueError(f"Invalid value: {value}")
+        if hasattr(obj, value.name):
+            return getattr(obj, value.name)()
+        else:
+            return obj.default()  # NOQA
+
+
+# Usage Example
+
+class VideoType(Enum):
+    Movie = 1
+    TvShow = 2
+
+
+videoType = VideoType.TvShow
+
+
+class VideoTypeSwitcher(EnumSwitch):
+    enum = VideoType
+
+    @staticmethod
+    def Movie():
+        print("It's a movie!")
+
+    @staticmethod
+    def TvShow():
+        print("It's a tv show!")
+
+
+VideoTypeSwitcher.switch(videoType)
